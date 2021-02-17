@@ -1,0 +1,410 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="zh-cn">
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<title>嘉兴一中实验学校 :: 开放课堂</title>
+<script type="text/javascript" src="../js/jquery-3.4.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/OpenClass.Style.css">
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="../ReportForRepairs/js/filterSQL.js"></script>
+<script>
+
+ var LoginIDNumber="";
+ var LoginName="";
+ 
+ window.onload=function(){
+   	document.getElementById('Wait').style.top='250px';
+	document.getElementById('Wait').style.left=(document.body.clientWidth-80)/2+'px';
+ 	document.getElementById("IdDivModalDialog").style.width="400px";
+ 	ajax("ajax/StuSessionCheck.php","",function(result){
+										if(result=="StuSessionCheckFail"){
+	 										$("#myModal").modal("show");
+	 									}
+	 									else{
+	 										LoginIDNumber=result;
+	 										document.getElementById("IdButton").innerHTML=LoginIDNumber;
+	 										ListLessons();
+	 									}
+										AjaxEnd();	
+	 									return true;
+								}
+  );
+ }
+ 
+ function ListLessons(){
+ 	ajax("ajax/ListLessons.php","",function(result){
+										ArrayLessons=eval("("+result+")");
+										LCount7=0;
+										LCount8=0;
+										LCount9=0;
+										htmlstring7="";
+										htmlstring8="";
+	 									htmlstring9="";
+ 										for(var i in ArrayLessons){
+ 											switch(ArrayLessons[i].grade){
+ 												case "7":
+ 													memo="七年级&nbsp;|&nbsp;"+ArrayLessons[i].disciplines+"学科&nbsp;|&nbsp;"+ArrayLessons[i].caption+"&nbsp;|&nbsp;"+ArrayLessons[i].teacher;
+ 													if(LCount7%4==0) htmlstring7+="<table width='100%'><tr><td colspan='4' height='20px'></td></tr><tr>";
+		 											htmlstring7+="<td>";
+		 											htmlstring7+="<table width='240' cellpadding='2' style='border: 1px solid #DDDDDD; font-size:10pt; border-radius:25px;'>";
+		 											htmlstring7+="<tr><td align='center' height='140'><img src='images/Lessons/"+ArrayLessons[i].id+".png' width='220px' height='124px' onclick=OpenLesson("+ArrayLessons[i].id+",'"+ArrayLessons[i].caption+"','"+ArrayLessons[i].code+"');></td></tr>";
+		 											htmlstring7+="<tr><td style='line-height: 150%;'><b>&nbsp;【"+ArrayLessons[i].disciplines+"】</b>"+ArrayLessons[i].caption+"</td></tr>";
+		 											htmlstring7+="<tr><td style='line-height: 150%; color:#999999; font-size:9pt;'>&nbsp;授课教师："+ArrayLessons[i].teacher+" 上课量："+ArrayLessons[i].click+(LoginIDNumber==String.fromCharCode(99,122,107,99,106,120,99)?"&nbsp| <a onclick=JsLo2Ex("+ArrayLessons[i].id+",'"+memo+"');>manage</a>":"")+"</td></tr>";
+		 											htmlstring7+="</table>";
+		 											htmlstring7+="</td>";
+		 											if(LCount7%4==3) htmlstring7+="</tr>";
+		 											LCount7++;
+		 											break;
+		 										case "8":
+ 													memo="八年级&nbsp;|&nbsp;"+ArrayLessons[i].disciplines+"学科&nbsp;|&nbsp;"+ArrayLessons[i].caption+"&nbsp;|&nbsp;"+ArrayLessons[i].teacher;
+ 													if(LCount8%4==0) htmlstring8+="<table width='100%'><tr><td colspan='4' height='20px'></td></tr><tr>";
+		 											htmlstring8+="<td>";
+		 											htmlstring8+="<table width='240' cellpadding='2' style='border: 1px solid #DDDDDD; font-size:10pt; border-radius:25px;'>";
+		 											htmlstring8+="<tr><td align='center' height='140'><img src='images/Lessons/"+ArrayLessons[i].id+".png' width='220px' height='124px' onclick=OpenLesson("+ArrayLessons[i].id+",'"+ArrayLessons[i].caption+"','"+ArrayLessons[i].code+"');></td></tr>";
+		 											htmlstring8+="<tr><td style='line-height: 150%;'><b>&nbsp;【"+ArrayLessons[i].disciplines+"】</b>"+ArrayLessons[i].caption+"</td></tr>";
+		 											htmlstring8+="<tr><td style='line-height: 150%; color:#999999; font-size:9pt;'>&nbsp;授课教师："+ArrayLessons[i].teacher+" 上课量："+ArrayLessons[i].click+(LoginIDNumber==String.fromCharCode(99,122,107,99,106,120,99)?"&nbsp| <a onclick=JsLo2Ex("+ArrayLessons[i].id+",'"+memo+"');>manage</a>":"")+"</td></tr>";
+		 											htmlstring8+="</table>";
+		 											htmlstring8+="</td>";
+		 											if(LCount8%4==3) htmlstring8+="</tr>";
+		 											LCount8++;
+		 											break;
+		 										case "9":
+ 													memo="九年级&nbsp;|&nbsp;"+ArrayLessons[i].disciplines+"学科&nbsp;|&nbsp;"+ArrayLessons[i].caption+"&nbsp;|&nbsp;"+ArrayLessons[i].teacher;
+ 													if(LCount9%4==0) htmlstring9+="<table width='100%'><tr><td colspan='4' height='20px'></td></tr><tr>";
+		 											htmlstring9+="<td>";
+		 											htmlstring9+="<table width='240' cellpadding='2' style='border: 1px solid #DDDDDD; font-size:10pt; border-radius:25px;'>";
+		 											htmlstring9+="<tr><td align='center' height='140'><img src='images/Lessons/"+ArrayLessons[i].id+".png' width='220px' height='124px' onclick=OpenLesson("+ArrayLessons[i].id+",'"+ArrayLessons[i].caption+"','"+ArrayLessons[i].code+"');></td></tr>";
+		 											htmlstring9+="<tr><td style='line-height: 150%;'><b>&nbsp;【"+ArrayLessons[i].disciplines+"】</b>"+ArrayLessons[i].caption+"</td></tr>";
+		 											htmlstring9+="<tr><td style='line-height: 150%; color:#999999; font-size:9pt;'>&nbsp;授课教师："+ArrayLessons[i].teacher+" 上课量："+ArrayLessons[i].click+(LoginIDNumber==String.fromCharCode(99,122,107,99,106,120,99)?"&nbsp| <a onclick=JsLo2Ex("+ArrayLessons[i].id+",'"+memo+"');>manage</a>":"")+"</td></tr>";
+		 											htmlstring9+="</table>";
+		 											htmlstring9+="</td>";
+		 											if(LCount9%4==3) htmlstring9+="</tr>";
+		 											LCount9++;
+		 											break;
+		 									}
+ 										}
+ 										AjaxEnd();
+ 										htmlstring7+="</table>";
+ 										htmlstring8+="</table>";
+ 										htmlstring9+="</table>";
+ 										document.getElementById("Grade7").innerHTML=htmlstring7;
+ 										document.getElementById("Grade8").innerHTML=htmlstring8;
+ 										document.getElementById("Grade9").innerHTML=htmlstring9;
+ 										if(LoginIDNumber==String.fromCharCode(99,122,107,99,106,120,99)){
+ 											document.getElementById("IdUpload").innerHTML+="<a href='ManagerNewLesson.php' target='view_window'>MU</a>";
+ 										}
+ 										return true;
+	 								}
+	 );
+
+ }
+ 
+ //管理员获取观课数据
+ function JsLo2Ex(LessonId,memo){
+	ajax("ajax/LoadLessonData.php","LessonId="+LessonId,function(result){
+													result=unescape(result.replace(/\\/g, "%"));
+ 													result=eval("("+result+")");
+				 									ExcelStr="";
+				 									ExcelStr="<tr><td colspan='6'>"+memo+"</td></tr>";
+				 									ExcelStr+="<tr><td align='center'>年段</td><td align='center'>年级</td><td align='center'>班级</td><td align='center'>学号</td><td align='center'>姓名</td><td align='center'>观看时间</td></tr>";
+				 									for(i in result){
+				 										ExcelStr+="<tr>";
+				 										ExcelStr+="<td>"+result[i].nd+"</td>";
+				 										ExcelStr+="<td>"+result[i].nj+"</td>";
+				 										ExcelStr+="<td>"+result[i].bj+"</td>";
+				 										ExcelStr+="<td>"+result[i].xh+"</td>";
+				 										ExcelStr+="<td>"+result[i].xm+"</td>";
+				 										ExcelStr+="<td>"+result[i].OpenTime+"</td>";
+				 										ExcelStr+="</tr>";
+				 									}
+				 									ExcelStr+="</table>";
+				 									tableToExcel(ExcelStr);
+												}
+	);
+}
+
+ function tableToExcel(StrData){
+	let worksheet = 'Sheet1';
+	let uri = 'data:application/vnd.ms-excel;base64,';
+	let template = `<html xmlns:o="urn:schemas-microsoft-com:office:office";
+	xmlns:x="urn:schemas-microsoft-com:office:excel" 
+	xmlns="http://www.w3.org/TR/REC-html40">
+    <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+    <x:Name>${worksheet}</x:Name>
+    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+    </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+    </head><body><table>${StrData}</table></body></html>`;
+	window.location.href = uri + base64(template);
+ }
+
+ function base64(s){
+	return window.btoa(unescape(encodeURIComponent(s)));
+ }
+
+</script>
+
+<!--修改模态框 出现的位置-->
+<style type="text/css">
+    .modal.fade.in{
+        top:50px;
+    }
+</style>
+
+<script>
+
+ function AjaxBegin(){
+ 	document.getElementById("Wait").style.display="";
+	//document.FromLogin.LoginButton.disabled="disabled";
+ }
+ 
+ function AjaxEnd(){
+ 	document.getElementById("Wait").style.display="none";
+	//document.FromLogin.LoginButton.disabled="";
+ 	return true;
+ }
+ 
+ function ajax(url,postStr,onsuccess){
+ 	var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+	xmlhttp.open("POST", url, true);
+	xmlhttp.onreadystatechange = function(){
+		if(xmlhttp.readyState==4){
+			if(xmlhttp.status==200){
+				onsuccess(xmlhttp.responseText);
+			}
+			else{
+				alert("服务器返回错误，请刷新页面后重试！");
+				AjaxEnd();
+			}
+		}
+	}
+	xmlhttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+	xmlhttp.send(postStr);
+ }
+
+ function JsRemoveAllSpace(obj){
+	obj.value=obj.value.replace(/\s+/g,"");
+	return true;
+ }
+ 
+ function JsVerifyLogin(){
+  LoginIDNumber=document.FromLogin.LoginIDNumber.value;
+  LoginName=document.FromLogin.LoginName.value;
+  if(LoginIDNumber=="" || LoginName==""){
+  	document.getElementById("DivReturnAlert").innerHTML="<div class='alert alert-warning alert-dismissable'><button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>请填写登陆信息。</div>";
+  	return false;
+  }
+  AjaxBegin();
+  PostStr="LoginIDNumber="+LoginIDNumber+"&LoginName="+LoginName;
+  ajax("ajax/StuLogin.php",PostStr,function(result){
+										if(result=="LoginSucc"){
+	 										document.getElementById("IdButton").innerHTML=LoginIDNumber;
+	 										$("#myModal").modal("hide");
+	 										ListLessons();
+	 									}
+	 									else{
+	 										document.getElementById("DivReturnAlert").innerHTML="<div class='alert alert-danger alert-dismissable'><button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>身份验证失败，请重试。</div>";
+	 									}
+										AjaxEnd();	
+	 									return true;
+								}
+  );
+ }
+ 
+ function OpenLesson(LessonId,LessonCaption,LessonCode){
+ 	document.getElementById("IdDivModalDialog").style.width="850px";
+ 	document.getElementById("myModalLabel").innerHTML=LessonCaption;
+ 	document.getElementById("ModalBody").style.height="500px";
+ 	document.getElementById("ModalBody").innerHTML="<iframe src='//player.bilibili.com/player.html?"+LessonCode+"' scrolling='no' border='0' frameborder='no' framespacing='0' allowfullscreen='true' width='100%' height='100%'> </iframe>";
+ 	document.getElementById("ModalCloseButton").style.display="";
+ 	$("#myModal").modal("show");
+ 	PostStr="LessonId="+LessonId;
+ 	ajax("ajax/OpenLessonClick.php",PostStr,function(result){});
+ 	return true;
+ }
+</script>
+
+</head>
+
+<body topmargin="0" leftmargin="0" rightmargin="0">
+
+<table border="0" width="100%" cellpadding="0" cellspacing="0">
+	<tr>
+		<td height="100" bgcolor="#0473A8">
+		<div align="center">
+			<table border="0" width="900">
+				<tr>
+					<td>
+					<img border="0" src="images/logo.png" width="446" height="54"></td>
+					<td><button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="单击退出当前登陆帐号" id="IdButton" onclick="if(confirm('确认退出当前账号吗？')){window.location.href='ajax/StuLogout.php';}">未登录</button>
+					<script>
+						$(function(){$("[data-toggle='tooltip']").tooltip();});
+					</script>
+					　</td>
+				</tr>
+			</table>
+		</div>
+		</td>
+	</tr>
+	<tr>
+		<td bgcolor="#0473A8">
+			<div id="my-slide">
+				<ul class="slide-list">
+					<button type="button" class="slick-top-prev slick-arrow" style=""></button>
+					<li attr-id="1" class="img-1 active"><img src="images/P01.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="2" class="img-2 ">
+					<img src="images/P02.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="3" class="img-3 "><img src="images/P03.jpg" alt=""  style="border-radius:15px"></li>
+					<li attr-id="4" class="img-4"><img src="images/P04.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="5" class="img-5 "><img src="images/P05.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="6" class="img-6"><img src="images/P06.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="7" class="img-7 "><img src="images/P07.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="8" class="img-8 "><img src="images/P08.jpg" alt="" style="border-radius:15px"></li>
+					<li attr-id="9" class="img-9 "><img src="images/P09.jpg" alt="" style="border-radius:15px"></li>
+					<button type="button" class="slick-top-next slick-arrow" style=""></button>
+				</ul>
+			</div>
+			<script type="text/javascript" src="../js/OpenClass.slide.js"></script>
+			<script>
+				//init slide
+				function slide_init(){
+					//$("#my-slide>.slide-list").children("li").css("width","calc(100% - 20px - 50%)");
+					var slide_length = $("#my-slide>.slide-list").children("li").length;
+					var li_width = $("#my-slide>.slide-list").children("li").width();
+					//ert(li_width);
+					//Calculate position of every li element
+					for (var j=1;j<=slide_length;j++){
+						$("#my-slide>.slide-list").find(".img-" + j).css("left",li_width/2+li_width*(j-1)+20*j);
+						if(j==slide_length){
+							$("#my-slide>.slide-list").find(".img-" + j).css("left",-(li_width/2));
+						}
+					} 
+				}
+				
+				//click left button to show the previous image
+				$(".slick-top-prev").click(function(){
+					var obj = $("#my-slide>.slide-list");
+					top_slide_left_click(this,obj);
+				});
+				
+				//click right button to show the previous image
+				$(".slick-top-next").click(function(){
+					var obj = $("#my-slide>.slide-list");
+					top_slide_right_click(this,obj);
+				});
+				$(function(){
+					slide_init();
+				});
+				//
+				$(window).resize(function () {
+					slide_init();
+				});
+			</script>
+		</td>
+	</tr>
+	<tr>
+		<td height="20" bgcolor="#0473A8">　</td>
+	</tr>
+	<tr>
+		<td height="20"></td>
+	</tr>
+	<tr>
+		<td>
+		<div align="center">
+			<table border="0" width="1000">
+				<tr>
+					<td>
+						<ul id="myTab" class="nav nav-tabs">
+							<li class="active"><a href="#Grade7" data-toggle="tab">七年级</a></li>
+							<li><a href="#Grade8" data-toggle="tab">八年级</a></li>
+							<li><a href="#Grade9" data-toggle="tab">九年级</a></li>
+						</ul>
+						<div id="myTabContent" class="tab-content">
+							<div class="tab-pane fade in active" id="Grade7">
+								<div align="center" id="DivGrade7"><br /><p align="center"><img src="../Hospital/images/wait.gif"></p></div>
+							</div>
+							<div class="tab-pane fade" id="Grade8">
+								<div align="center" id="DivGrade8"><br /><p align="center"><img src="../Hospital/images/wait.gif"></p></div>
+							</div>
+							<div class="tab-pane fade" id="Grade9">
+								<div align="center" id="DivGrade9"><br /><p align="center"><img src="../Hospital/images/wait.gif"></p></div>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<!-- 模态框（Modal） -->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+			<div class="modal-dialog" id="IdDivModalDialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<!--关闭按钮-->
+						<!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+							&times;
+						</button>-->
+						<h4 class="modal-title" id="myModalLabel">
+							嘉兴一中实验学校 :: 开放课堂 :: 登陆
+						</h4>
+					</div>
+					<div class="modal-body" align="center" id="ModalBody">
+						<div style="padding: 20px 20px 10px;">
+							<form class="bs-example bs-example-form" role="form" name="FromLogin">
+								<div class="input-group">
+									<span class="input-group-addon">身份证号</span>
+									<input type="text" class="form-control" placeholder="身份证号" name="LoginIDNumber" onchange="JsCheckSQLError(this);JsRemoveAllSpace(this);">
+								</div>
+								<br>
+								<div class="input-group">
+									<span class="input-group-addon">姓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名</span>
+									<input type="text" class="form-control" placeholder="姓名" name="LoginName" onchange="JsCheckSQLError(this);JsRemoveAllSpace(this);">
+								</div>
+								<br>
+								<button type="button" class="btn btn-success" name="LoginButton" onclick="JsVerifyLogin();">登&nbsp;&nbsp;陆</button>
+							</form>
+						</div>
+						<div id="DivReturnAlert"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal" style="display:none;" id="ModalCloseButton">关闭</button>
+					</div>
+				</div>
+			</div>
+			<script>
+			   $(function () { $('#myModal').modal('hide')});
+			</script>
+			<script>
+			   $(function () { $('#myModal').on('hide.bs.modal', function () {
+			       	document.getElementById("ModalBody").innerHTML="";
+			      })
+			   });
+			</script>
+		
+		</td>
+	</tr>
+	<tr>
+		<td height="20">
+		　</td>
+	</tr>
+	<tr>
+		<td bgcolor="#E6E6E6" height="80">
+		<div align="center">
+			<table border="0">
+				<tr>
+					<td><font size="2" color="#808080">嘉兴一中实验学校 信息技术处 初中课程教学处 v20210127</font></td>
+					<td><div id="IdUpload"></div></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+
+<div style="display:none;position: absolute; width: 80px; height:80px; z-index: 1;filter:alpha(Opacity=70);-moz-opacity:0.7;opacity:0.7;" id="Wait">
+<img border="0" src="../Hospital/images/wait.gif" width="80" height="80"></div>
+
+</body>
+
+</html>
