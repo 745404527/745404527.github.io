@@ -1,0 +1,516 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Music</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+	<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://at.alicdn.com/t/font_1685715_f39q3qwjl7i.css"></link>
+	<!--引入思源字体-->
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+	
+	<style>
+		#title{
+			animation: change 10s linear 0s infinite;
+			text-decoration:none;
+			outline:none;
+			border:none;
+			transition:all 0.5s ease-in-out;
+			text-shadow: 0 5px 5px #fff,0 -5px 5px #fff,5px 0 5px #fff,-5px 0 5px #fff;
+			text-align: center;
+		}
+
+		@keyframes change {
+			0% {color: #4cf;}
+			50% {color: #fac;}
+			100% {color: #4cf;}
+		}
+		
+		html,body{
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			width: 100%;
+			font-family: Noto Serif SC;
+			font-style: normal;
+			font-weight: 500;
+		}
+		
+		#bgimg{
+			position: fixed;
+			height: 100%;
+			width: 100%;
+			background-size: cover;
+			background-position: center center;
+			opacity:0.7;
+			z-index:-1;
+			filter: blur(5px);
+		}
+		
+		.translist-move{
+			transition: all 0.3s;
+		}
+		.translist-enter-active, .translist-leave-active {
+		  transition: all 0.3s;
+		}
+		.translist-enter, .translist-leave-to
+		/* .list-leave-active for below version 2.1.8 */ {
+		  opacity: 0;
+		  transform: translateY(30px);
+		}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="bgimg"></div>
+	<div class="container col-12 col-md-8" style="opacity: 0.7;">
+		<div id="app">
+			<div class="card"><div class="card-body">
+				<h1 id="title">Music</h1>
+				<p style="text-align: center;">{{hitokoto}}</p>
+				<div class="row">
+					<input class="col-10 form-control" v-model="name" @keyup.13="off=0;search();"></input>
+					<button class="btn btn-success col-2" @click="off=0;search();">
+						<i class="iconfont iconsousuo" title="搜索"></i>
+					</button>
+				</div>
+				
+				<div class="row">
+					<select class="form-control col-6" v-model="platform">
+						<option v-for="i in platforms" :value="i.value">{{i.text}}</option>
+					</select>
+					<select class="form-control col-6" v-model="type">
+						<option v-for="i in types" :value="i.value">{{i.text}}</option>
+					</select>
+				</div>
+				<div class="row">
+					<select class="form-control col-4" v-model="looptype">
+						<option v-for="i in looptypes" :value="i.value">{{i.text}}</option>
+					</select>
+					<button class="form-control col-4" @click="playNext();" style="text-align: left;">下一首</button>
+					<button class="form-control col-4" @click="showPlayList=(!showPlayList)" style="text-align: left;">{{showPlayList?"关闭":"打开"}}列表</button>
+				</div>
+				<div class="row">
+					<audio style="width:100%;outline: medium;" ref="player" id="player" :src="nowmurl" controls="controls" autoplay="autoplay"></audio>
+				</div>
+				<p :style="{textShadow:'0px 0px '+nowlevel+'px #606975',fontSize:'30px',color:'#606975',textAlign:'center'}">{{nowname}}</p>
+				<p :style="{textShadow:'0px 0px '+nowlevel+'px #606975',fontSize:'20px',color:'#606975',textAlign:'center'}">{{nowlrc}}</p>
+			</div></div>
+			
+			<transition-group name="translist">
+				<div v-show="!showPlayList && musicList.length" class="col-12" key="musicListhead">
+					<hr/>
+					<div v-if="!showPlayList && musicList.length && musicList[0].type=='music'">
+						<div class="row m-auto">
+							<button class="form-control col-6" @click="addAll('replace');" style="text-align: left;">播放全部</button>
+							<button class="form-control col-6" @click="addAll('back');" style="text-align: left;">添加全部</button>
+						</div>
+						<br/>
+					</div>
+				</div>
+				<music-list v-show="!showPlayList" v-for="(item,index) in musicList" :music="item" :key="item.mid" :index="index"></music-list>
+				<button v-show="!showPlayList" class="btn btn-block btn-success"
+				@click="search();" :disabled="end" v-if="off" key="updatemore">
+				{{end?'木有了...':'加载更多'}}</button>
+			</transition-group>
+			
+			<transition-group name="translist">
+				<div key="PlayListhead" v-show="showPlayList  && playList.length">
+					<hr/>
+					<button class="form-control col-12" @click="playList=[]" style="text-align: left;">清空播放列表</button>
+					<br/>
+				</div>
+				<play-music-list v-if="showPlayList" v-for="(item,index) in playList" :music="item" :key="item.mid" :index="index"></play-music-list>
+			</transition-group>
+			
+			
+		</div>
+	</div>
+	
+	
+	<script>
+		var vm = new Vue({ //主应用
+			el:"#app",
+			data:{
+				name:"",
+				platform:"C",
+				type:"music",
+				off:0,
+				lim:20,
+				end:false,
+				searching:false,
+				nowmid:"",
+				nowmurl:"",
+				nowlrcs:[],
+				nowt:0,
+				nowlrc:"",
+				nowlevel:0,
+				nowname:"",
+				playing:0,
+				looptype:"顺序",
+				hitokoto:"",
+				showPlayList:false,
+				baseurl:"https://1426531544223608.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/flwfdd-music/",
+				baseburl:"http://114.55.93.225:5000/",
+				platforms:[
+					{"text":"网易云","value":"C"},
+					{"text":"QQ","value":"Q"},
+					{"text":"bilibili","value":"B"}
+				],
+				types:[
+					{"text":"歌曲","value":"music"},
+					{"text":"歌单","value":"list"},
+					{"text":"b站用户(投稿&收藏夹)","value":"user"},
+					{"text":"歌词","value":"lrc"}
+				],
+				looptypes:[
+					{"text":"顺序","value":"顺序"},
+					{"text":"单曲","value":"单曲"},
+					{"text":"随机","value":"随机"}
+				],
+				colors: {
+					"C":"rgba(255,100,120,0.8)",
+					"Q":"#68D9A3",
+					"B":"#FCA6BF"
+				},
+				musicList:[],
+				playList:[]
+			},
+			methods:{
+				search : function(){
+					this.showPlayList=false;
+					//if(this.searching)return;
+					//console.log(this.platform+this.type+this.name);
+					this.searching=true;
+					if(this.platform=="C")apiurl="cloudsearch/",color=this.colors["C"];
+					if(this.platform=="Q")apiurl="qqsearch/",color=this.colors["Q"];
+					if(this.platform=="B")apiurl="bilisearch/",color=this.colors["B"];
+					axios.get(this.baseurl+apiurl,{
+						params:{
+							keyword:this.name,
+							type:this.type,
+							offset:this.off,
+							limit:this.lim
+							}
+					}).then(function(r){
+						r=r.data;
+						if(_this.off==0)_this.end=false; //搜索归零
+						if(r.length==0)_this.end=true;
+						if(_this.end)return; //已经到头
+						
+						for(i in r)r[i].color=color;
+						if(_this.off==0)_this.musicList=r; //加入列表
+						else _this.musicList=_this.musicList.concat(r);
+						
+						if(r.length<_this.lim)_this.end=true;
+						_this.off++;
+						_this.searching=false;
+					});
+				},
+				playMusic : function(mid){
+					if(mid[0]=="C")url=this.baseurl+"cloudmusic/";
+					if(mid[0]=="Q")url=this.baseurl+"qqmusic/";
+					if(mid[0]=="B")url=this.baseburl+"bilimusic/";
+					axios.get(url,{
+					params:{
+						mid: mid,
+						type:"music",
+						}
+					})
+					.then(function(response){
+						_this.nowmurl=response.data.src;
+						_this.imgurl=response.data.img;
+						document.querySelector("#bgimg").style.backgroundImage="url("+_this.imgurl+")";
+						s=response.data.lrc;
+						l=s.split("\n");
+						for(i=0;i<l.length;i++)
+						{
+							if(l[i]=="")continue;
+							time_str=l[i].slice(1,l[i].search("]"));
+							t=time_str.split(":")[0]*60+time_str.split(":")[1]*1.0;
+							_this.nowlrcs.push([t,l[i].slice(l[i].search("]")+1)]);
+						}
+						if(_this.nowmurl==""){
+							_this.nowname="出错了Orz将移除此歌";
+							setTimeout(function(){
+								_this.playList.shift(0);
+							},3000);
+						}
+					})
+				},
+				up_lrc:function(){ //歌词更新
+					this.nowt=this.$refs["player"].currentTime;
+					for(i=this.nowlrcs.length-1;i>=0;i--)
+					{
+						if(this.nowt>=this.nowlrcs[i][0])
+						{
+							this.nowlrc=this.nowlrcs[i][1];
+							break;
+						}
+					}
+				},
+				playNext: function(){
+					au=this.$refs['player'];
+					if(this.looptype=="顺序"){
+						if(this.playList.length){
+							this.playList.push(this.playList.shift());
+							if(this.playList.length==1)au.currentTime=0,au.play();
+						}
+						else{
+							this.nowmurl="";
+						}
+					}
+					if(this.looptype=="随机"){
+						if(this.playList.length){
+							ind=Math.floor(Math.random()*this.playList.length)
+							if(ind==0)au.currentTime=0,au.play();
+							else this.playList.unshift(this.playList.splice(ind,1)[0]);
+						}
+						else{
+							this.nowmurl="";
+						}
+					}
+					if(this.looptype=="单曲"){
+						
+					}
+				},
+				startSearch: function(opt){
+					this.type=opt[0];
+					this.name=opt[1];
+					this.off=0;
+					this.search();
+				},
+				download: function(mid,type){ //下载
+					if(mid[0]=="C")url=this.baseurl+"cloudmusic/";
+					if(mid[0]=="Q")url=this.baseurl+"qqmusic/";
+					if(mid[0]=="B")url=this.baseburl+"bilimusic/";
+					axios.get(url,{
+					params:{
+						mid: mid,
+						type:"music",
+						}
+					})
+					.then((r) => {
+						if(type=="music"){
+							window.open(r.data.src,"_blank");
+						}
+						if(type=="lrc"){
+							s=r.data.lrc;
+							aux = document.createElement("textarea"); 
+							aux.value=s; 
+							document.body.appendChild(aux); 
+							aux.select();
+							document.execCommand("copy"); 
+							window.alert("复制到剪贴板咯");
+							aux.remove();
+						}
+					})
+				},
+				addList: function(list,pos){
+					if(pos=="replace")this.playList=list;
+					else{
+						nowmidlist=[];
+						if(pos=="front"){
+							for(i in list)nowmidlist.push(list[i].mid);
+							for(i in this.playList)if(nowmidlist.indexOf(this.playList[i].mid)!=-1)this.playList.splice(i,1);
+							this.playList=list.concat(this.playList);
+						}
+						else{
+							for(i in this.playList)nowmidlist.push(this.playList[i].mid);
+							for(i in list)if(nowmidlist.indexOf(list[i].mid)!=-1)list.splice(i,1);
+							this.playList=this.playList.concat(list);
+						}
+					}
+					
+				},
+				addAll: function(pos){
+					this.addList(this.musicList,pos);
+				}
+			},
+			watch:{
+				playList: function(){
+					//将有分p的解包
+					for(i in this.playList){
+						if("p" in this.playList[i] && this.playList[i].p>1){
+							url=this.baseburl+"bilimusic/"+"?type=p&mid="+this.playList[i].mid;
+							axios.get(url)
+							.then(function(r){
+								orimid=r.data[0].mid.substr(0,r.data[0].mid.search("\\u003F"));
+								for(i in _this.playList){
+									if(_this.playList[i].mid==orimid){
+										_this.playList.splice(i,1);
+										for(j=r.data.length-1;j>=0;j--){
+											_this.playList.splice(i,0,r.data[j]);
+										}
+										return;
+									}
+								}
+							});
+						}
+					}
+					
+					//添加颜色
+					for(i in this.playList){
+						this.playList[i].color=this.colors[this.playList[i].mid.substr(0,1)];
+					}
+					
+					if(_this.playList.length){
+						this.nowname=this.playList[0].name;
+						if(this.nowmid!=this.playList[0].mid){
+							this.nowmid=this.playList[0].mid;
+							this.playMusic(this.playList[0].mid);
+						}
+					}
+				},
+			},
+			created: function(){
+				_this=this;
+				setInterval(this.up_lrc,100);
+				axios.get("https://v1.hitokoto.cn").then(function(r){
+					_this.hitokoto=r.data.hitokoto+"——"+r.data.from;
+				});
+				setInterval(function(){
+					axios.get("https://v1.hitokoto.cn").then(function(r){
+						_this.hitokoto=r.data.hitokoto+"——"+r.data.from;
+					})
+				},10000);
+				setTimeout(function(){
+					_this.$refs["player"].addEventListener('ended', function () {  
+						_this.playNext();
+					});
+				},1000)
+				
+			}
+		});
+		
+		Vue.component("music-list",{
+			props:["music","index"],
+			data: function(){
+				return {
+					"list":[]
+				};
+			},
+			template:`
+			<div>
+				<div class="alert alert-info"
+					:style="{'background-color':music.color,'border-color':music.color}">
+					<span class="badge badge-pill badge-warning">{{index+1}}</span>
+					<span>{{music.name}}</span>
+					<span class="badge badge-pill badge-primary" 
+						v-for="i in music.artist"  @click="_this.startSearch(['music',i.name])">
+						{{i.name}}
+					</span>
+					<span class="badge badge-pill badge-info" v-if="music.album.name!=''"
+						@click="_this.startSearch(['music',music.album.name])">
+						{{music.album.name}}
+					</span>
+					<span v-if="(music.type!='music'&&list.length==0)" class="badge badge-pill badge-info" 
+						@click="get_list()">
+						展开
+					</span>
+					<span v-if="(music.type!='music'&&list.length!=0)" class="badge badge-pill badge-info"
+						@click="zip_list()">
+						收起
+					</span>
+					<span v-if="['music','p','list','fav','up'].indexOf(music.type)!=-1">
+						<i class="iconfont iconbofangsanjiaoxing" title="播放" @click="add_list(['music','p'].indexOf(music.type)==-1?'replace':'front')"></i>
+						<i class="iconfont iconicon-test" title="添加到播放列表" @click="add_list('back')"></i>
+					</span>
+					<span v-if="music.type=='music'">
+						<i class="iconfont iconxiazai" title="下载" @click="_this.download(music.mid,'music')"></i>
+						<i class="iconfont iconwendang" title="歌词" @click="_this.download(music.mid,'lrc')"></i>
+					</span>
+				</div>
+				<transition-group name="translist">
+					<music-list v-for="(item,index) in list" :music="item" :key="item.mid" :index="index"></music-list>
+				</transition-group>
+			</div>
+				`,
+			methods: {
+				get_list: function(){
+					if(this.music.mid.slice(0,1)=="B")url=_this.baseburl+"bilimusic/";
+					if(this.music.mid.slice(0,1)=="C")url=_this.baseurl+"cloudmusic/";
+					url+="?type="+this.music.type+"&mid="+this.music.mid;
+					axios.get(url)
+					.then((r) => {
+						this.list=r.data;
+					});
+				},
+				zip_list: function(){
+					this.list=[];
+				},
+				add_list: function(pos){
+					if(this.music.type=="music")_this.addList([this.music],pos);
+					else{
+						if(this.music.mid.slice(0,1)=="B")url=_this.baseburl+"bilimusic/";
+						if(this.music.mid.slice(0,1)=="C")url=_this.baseurl+"cloudmusic/";
+						url+="?type="+this.music.type+"&mid="+this.music.mid;
+						axios.get(url)
+						.then((r) => {
+							_this.addList(r.data,pos);
+						});
+					}
+					
+				}
+			},
+			watch: {
+				list:function(){
+					for(i in this.list)this.list[i].color="#70DBFF";
+				}
+			}
+		});
+		
+		
+		Vue.component("play-music-list",{
+			props:["music","index"],
+			template:`
+				<div class="alert alert-info"
+					:style="{'background-color':music.color,'border-color':music.color}">
+					<span class="badge badge-pill badge-warning">{{index+1}}</span>
+					<span>{{music.name}}</span>
+					<span class="badge badge-pill badge-primary"
+						v-for="i in music.artist"  @click="_this.startSearch(['music',i.name])">
+						{{i.name}}
+					</span>
+					<span class="badge badge-pill badge-info" v-if="music.album.name!=''"
+						@click="_this.startSearch(['music',music.album.name])">
+						{{music.album.name}}
+					</span>
+					<i class="iconfont iconbofangsanjiaoxing" title="播放" @click="add_list()"></i>
+					<i class="iconfont iconxiazai" title="下载" @click="_this.download(music.mid,'music')"></i>
+					<i class="iconfont iconwendang" title="歌词" @click="_this.download(music.mid,'lrc')"></i>
+					<i class="iconfont iconshang" title="上移" @click="go_up(index)"></i>
+					<i class="iconfont iconxia" title="下移" @click="go_down(index)"></i>
+					<i class="iconfont iconshanchu" title="删除" @click="_this.playList.splice(index,1)"></i>
+				</div>
+				`,
+			methods:{
+				go_up: function(key){
+					pl=_this.playList.concat();
+					if(key==0)return;
+					key2=(key-1+pl.length)%pl.length;
+					Vue.set(vm.playList,key,pl[key2]);
+					Vue.set(vm.playList,key2,pl[key]);
+				},
+				go_down: function(key){
+					pl=_this.playList.concat();
+					if(key==pl.length-1)return;
+					key2=(key+1+pl.length)%pl.length;
+					Vue.set(vm.playList,key,pl[key2]);
+					Vue.set(vm.playList,key2,pl[key]);
+				},
+				add_list: function(){
+					_this.addList([this.music],"front");
+				}
+			}
+		});
+	</script>
+
+</body>
+</html>
